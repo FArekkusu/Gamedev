@@ -33,6 +33,7 @@ def play_othello(board, player_1, player_2):
     while True:
         move = (make_ai_move if current.type == COMPUTER else make_human_move)(board, current.symbol)
         if move is None:
+            print(f"\n{'Black' if current.symbol == BLACK else 'White'} has no possible moves, skipping")
             if passed:
                 break
             passed = True
@@ -48,14 +49,13 @@ def play_othello(board, player_1, player_2):
 def make_human_move(board, player_symbol):
     moves = board.find_moves(player_symbol)
     print()
-    if not moves:
-        print(f"{'Black' if player_symbol == BLACK else 'White'} has no possible moves, skipping")
-        return
     print(board)
-    print(f"\n{player_symbol} Possible moves: {', '.join(moves)}")
+    if not moves:
+        return
+    print(f"\n{'Black' if player_symbol == BLACK else 'White'} possible moves: {', '.join(moves)}")
     while True:
         move = input("> ").upper()
-        if move == "FORFEIT":
+        if move == "GIVE UP":
             raise ForfeitException(f"{'Black' if player_symbol == BLACK else 'White'} gave up")
         elif move in moves:
             return move
