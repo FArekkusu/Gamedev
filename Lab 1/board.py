@@ -19,9 +19,9 @@ class Board:
         for x, y in self.valid_positions:
             for dx, dy in DIRECTIONS:
                 if self.state[x][y] == EMPTY and self.line_exists(player_symbol, x, y, dx, dy):
-                    moves.append((x, y))
+                    moves.append(f"{chr(y + 64)}{x}")
                     break
-        return [f"{chr(y + 64)}{x}" for x, y in moves]
+        return moves
     
     def line_exists(self, player_symbol, x, y, dx, dy):
         X = x
