@@ -1,5 +1,7 @@
-DIRECTIONS = [(dx, dy) for dx in range(-1, 2) for dy in range(-1, 2) if dx or dy]
 EMPTY = " "
+MARK = "x"
+
+DIRECTIONS = [(dx, dy) for dx in range(-1, 2) for dy in range(-1, 2) if dx or dy]
 
 class Board:
     def __init__(self, black_symbol, white_symbol):
@@ -14,6 +16,15 @@ class Board:
         rows = f"\n  {line}\n".join(f"{i} | {' | '.join(x[1:-1])} |" for i, x in enumerate(self.state[1:-1], 1))
         return f"{top}\n  {line}\n{rows}\n  {line}"
     
+    def stringify_with_moves(self, moves):
+        moves = [(int(x), ord(y) - 64) for y, x in moves]
+        for x, y in moves:
+            self.state[x][y] = MARK
+        result = str(self)
+        for x, y in moves:
+            self.state[x][y] = EMPTY
+        return result
+
     def find_moves(self, player_symbol):
         moves = []
         for x, y in self.valid_positions:
