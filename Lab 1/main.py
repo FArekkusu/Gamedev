@@ -8,7 +8,7 @@ class ForfeitException(Exception):
 Player = namedtuple("Player", ("type", "symbol"))
 
 BLACK = "■"
-WHITE = "O"
+WHITE = "□"
 
 HUMAN = "human"
 COMPUTER = "computer"
@@ -47,9 +47,10 @@ def play_othello(board, player_1, player_2):
 
 def make_human_move(board, player_symbol):
     moves = board.find_moves(player_symbol)
-    if not moves:
-        return
     print()
+    if not moves:
+        print(f"{'Black' if player_symbol == BLACK else 'White'} has no possible moves, skipping")
+        return
     print(board)
     print(f"\n{player_symbol} Possible moves: {', '.join(moves)}")
     while True:
