@@ -30,7 +30,8 @@ def play_othello(board, player_1, player_2):
     current = player_1
     opponent = player_2
     passed = False
-    while True:
+    pieces = 4
+    while pieces < 64:
         move = (make_ai_move if current.type == COMPUTER else make_human_move)(board, current.symbol)
         if move is None:
             print(f"\n{'Black' if current.symbol == BLACK else 'White'} has no possible moves, skipping")
@@ -39,6 +40,7 @@ def play_othello(board, player_1, player_2):
             passed = True
         else:
             board.make_move(move, current.symbol)
+            pieces += 1
         current, opponent = opponent, current
     print()
     black_total, white_total = board.calculate_total(player_1.symbol, player_2.symbol)
