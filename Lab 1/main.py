@@ -1,6 +1,7 @@
 from collections import namedtuple
 from board import Board
 from ai import make_random_move as make_ai_move
+from ui import display_menu, display_board, display_no_moves, display_result
 
 class ForfeitException(Exception):
     pass
@@ -21,11 +22,6 @@ COMMANDS = {x[0].lower(): x for x in (
     ("Quit", "Exit the game")
 )}
 
-def print_menu():
-    print("Enter one of the following commands:")
-    print("\n".join(f"  | {x} - {y}" for x, y in COMMANDS.values()))
-    print()
-
 def play_othello(board, player_1, player_2):
     current = player_1
     opponent = player_2
@@ -34,7 +30,7 @@ def play_othello(board, player_1, player_2):
     while pieces < 64:
         move = (make_ai_move if current.type == COMPUTER else make_human_move)(board, current.symbol)
         if move is None:
-            print(f"\n{'Black' if current.symbol == BLACK else 'White'} has no possible moves, skipping")
+            display_no_moves("Black" if current.symbol == BLACK else "White")
             if passed:
                 break
             passed = True
@@ -42,16 +38,14 @@ def play_othello(board, player_1, player_2):
             board.make_move(move, current.symbol)
             pieces += 1
         current, opponent = opponent, current
-    print()
     black_total, white_total = board.calculate_total(player_1.symbol, player_2.symbol)
-    print(f"Black: {black_total}, White: {white_total}")
-    print(f"{'Black' if black_total > white_total else 'White'} wins" if black_total != white_total else "Tie")
-    print()
+    if player_1.type == HUMAN or player_2.type == HUMAN:
+        display_board(board)
+    display_result(black_total, white_total)
 
 def make_human_move(board, player_symbol):
     moves = board.find_moves(player_symbol)
-    print()
-    print(board)
+    display_board(board, moves)
     if not moves:
         return
     print(f"\n{'Black' if player_symbol == BLACK else 'White'} possible moves: {', '.join(moves)}")
@@ -65,7 +59,7 @@ def make_human_move(board, player_symbol):
 
 def gameloop():
     while True:
-        print_menu()
+        display_menu(COMMANDS.values())
         command = input("> ").lower()
         if command == "quit":
             break
