@@ -1,9 +1,9 @@
 from collections import namedtuple
 from board import Board
 from ai import make_random_move as make_ai_move
-from ui import display_menu, display_board, display_no_moves, display_result
+from ui import display_menu, display_board, display_no_moves, display_result, display_give_up
 
-class ForfeitException(Exception):
+class GiveUpException(Exception):
     pass
 
 Player = namedtuple("Player", ("type", "symbol"))
@@ -41,7 +41,7 @@ def play_othello(board, player_1, player_2):
     black_total, white_total = board.calculate_total(player_1.symbol, player_2.symbol)
     if player_1.type == HUMAN or player_2.type == HUMAN:
         display_board(board)
-    display_result(black_total, white_total)
+    return (black_total, white_total)
 
 def make_human_move(board, player_symbol):
     moves = board.find_moves(player_symbol)
@@ -52,7 +52,7 @@ def make_human_move(board, player_symbol):
     while True:
         move = input("> ").upper()
         if move == "GIVE UP":
-            raise ForfeitException(f"{'Black' if player_symbol == BLACK else 'White'} gave up")
+            raise GiveUpException(f"{'Black' if player_symbol == BLACK else 'White'} gave up")
         elif move in moves:
             return move
         print("Invalid move")
@@ -70,10 +70,10 @@ def gameloop():
         player_1 = Player(HUMAN if command[-3] == "p" else COMPUTER, BLACK)
         player_2 = Player(HUMAN if command[-1] == "p" else COMPUTER, WHITE)
         try:
-            play_othello(board, player_1, player_2)
-        except ForfeitException as e:
-            print(e)
-            print()
+            black_total, white_total = play_othello(board, player_1, player_2)
+            display_result(black_total, white_total)
+        except GiveUpException as e:
+            display_give_up(e)
 
 if __name__ == "__main__":
     gameloop()

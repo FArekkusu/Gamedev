@@ -15,3 +15,7 @@ def display_result(black, white):
     print(f"Black: {black}, White: {white}")
     print(f"{'Black' if black > white else 'White'} wins" if black != white else "Tie")
     print()
+
+def display_give_up(exception):
+    print(exception)
+    print()
