@@ -38,10 +38,7 @@ def play_othello(board, player_1, player_2):
             board.make_move(move, current.symbol)
             pieces += 1
         current, opponent = opponent, current
-    black_total, white_total = board.calculate_total(player_1.symbol, player_2.symbol)
-    if player_1.type == HUMAN or player_2.type == HUMAN:
-        display_board(board)
-    return (black_total, white_total)
+    return board.calculate_total(player_1.symbol, player_2.symbol)
 
 def make_human_move(board, player_symbol):
     moves = board.find_moves(player_symbol)
@@ -71,8 +68,12 @@ def gameloop():
         player_2 = Player(HUMAN if command[-1] == "p" else COMPUTER, WHITE)
         try:
             black_total, white_total = play_othello(board, player_1, player_2)
+            if player_1.type == HUMAN or player_2.type == HUMAN:
+                display_board(board)
             display_result(black_total, white_total)
         except GiveUpException as e:
+            if player_1.type == HUMAN or player_2.type == HUMAN:
+                display_board(board)
             display_give_up(e)
 
 if __name__ == "__main__":

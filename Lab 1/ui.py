@@ -17,5 +17,6 @@ def display_result(black, white):
     print()
 
 def display_give_up(exception):
+    print()
     print(exception)
     print()
