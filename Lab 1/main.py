@@ -6,7 +6,7 @@ from ui import display_menu, display_board, display_no_moves, display_result, di
 class GiveUpException(Exception):
     pass
 
-Player = namedtuple("Player", ("type", "symbol"))
+Player = namedtuple("Player", ("type", "symbol", "move"))
 
 BLACK = "■"
 WHITE = "□"
@@ -22,13 +22,17 @@ COMMANDS = {x[0].lower(): x for x in (
     ("Quit", "Exit the game")
 )}
 
+def create_player(type_code, color):
+    type_, move_function = {"p": (HUMAN, make_human_move), "c": (COMPUTER, make_ai_move)}[type_code]
+    return Player(type_, color, move_function)
+
 def play_othello(board, player_1, player_2):
     current = player_1
     opponent = player_2
     passed = False
     pieces = 4
     while pieces < 64:
-        move = (make_ai_move if current.type == COMPUTER else make_human_move)(board, current.symbol)
+        move = current.move(board, current.symbol)
         if move is None:
             display_no_moves("Black" if current.symbol == BLACK else "White")
             if passed:
@@ -64,11 +68,11 @@ def gameloop():
             print("Unknown command\n")
             continue
         board = Board(BLACK, WHITE)
-        player_1 = Player(HUMAN if command[-3] == "p" else COMPUTER, BLACK)
-        player_2 = Player(HUMAN if command[-1] == "p" else COMPUTER, WHITE)
+        player_1 = create_player(command[-3], BLACK)
+        player_2 = create_player(command[-1], WHITE)
         try:
             black_total, white_total = play_othello(board, player_1, player_2)
-            if player_1.type == HUMAN or player_2.type == HUMAN:
+            if HUMAN in (player_1.type, player_2.type):
                 display_board(board)
             display_result(black_total, white_total)
         except GiveUpException as e:
