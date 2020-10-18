@@ -41,6 +41,7 @@ def play_othello(board, player_1, player_2):
         else:
             board.make_move(move, current.symbol)
             pieces += 1
+            passed = False
         current, opponent = opponent, current
     return board.calculate_total(player_1.symbol, player_2.symbol)
 
