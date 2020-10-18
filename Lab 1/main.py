@@ -77,7 +77,7 @@ def gameloop():
                 display_board(board)
             display_result(black_total, white_total)
         except GiveUpException as e:
-            if player_1.type == HUMAN or player_2.type == HUMAN:
+            if HUMAN in (player_1.type, player_2.type):
                 display_board(board)
             display_give_up(e)
 
