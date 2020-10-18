@@ -10,10 +10,9 @@ def display_board(board, moves=None):
 def display_no_moves(side):
     print(f"\n{side} has no possible moves, skipping")
 
-def display_result(black, white):
+def display_result(winner):
     print()
-    print(f"Black: {black}, White: {white}")
-    print(f"{'Black' if black > white else 'White'} wins" if black != white else "Tie")
+    print(f"{winner.color} wins" if winner is not None else "Tie")
     print()
 
 def display_give_up(exception):
