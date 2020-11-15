@@ -35,10 +35,7 @@ namespace ShooterServer
                 ReceivedWorldData[i] = !isConnected;
 
                 if (!isConnected)
-                {
-                    WorldState.Characters[i].Hp = 0;
                     WorldState.Characters[i].IsAlive = false;
-                }
             }
         }
 
@@ -52,7 +49,6 @@ namespace ShooterServer
                 
                 ReceivedWorldData[id] = true;
                 
-                WorldState.Characters[id].Hp = 0;
                 WorldState.Characters[id].IsAlive = false;
             }
         }
@@ -71,9 +67,13 @@ namespace ShooterServer
         public override void Update()
         {
             var connectedCount = Server.CountConnected();
-            
+
             if (connectedCount < 2)
+            {
                 Server.BroadcastGameOver();
+                
+                Server.State = new LobbyState(Server);
+            }
             else if (ReceivedWorldData.All(received => received))
             {
                 if (TicksLeft == 0)
@@ -83,6 +83,8 @@ namespace ShooterServer
                     TicksLeft--;
                     
                     Console.WriteLine($"[Preparation state] Moving to playing state in {TicksLeft}");
+
+                    Server.SendPing();
                     
                     Thread.Sleep(TickLength);
                 }

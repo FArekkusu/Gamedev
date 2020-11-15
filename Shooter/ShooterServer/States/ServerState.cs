@@ -23,7 +23,7 @@ namespace ShooterServer
                 Server.SendConnectionAccepted(endpoint, id);
             }
             else
-                Server.SendConnectionDenied(endpoint, id);
+                Server.SendConnectionDenied(endpoint);
         }
         
         public virtual void HandleDisconnect(IPEndPoint endpoint) {}

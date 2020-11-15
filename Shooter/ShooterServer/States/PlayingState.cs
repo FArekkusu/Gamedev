@@ -37,12 +37,7 @@ namespace ShooterServer
             var id = Server.FindUserSlot(endpoint);
 
             if (id > -1)
-            {
-                Server.ConnectionStatuses[id] = false;
-                
-                WorldState.Characters[id].Hp = 0;
                 WorldState.Characters[id].IsAlive = false;
-            }
         }
 
         public override void HandleInputs(IPEndPoint endpoint, ((int, int), bool, double) data)
@@ -86,11 +81,20 @@ namespace ShooterServer
                 LastUpdate = now;
                 NextUpdate += TimeSpan.FromMilliseconds(NextUpdateStep);
             }
-            
+
             if (WorldState.Characters.Count(character => character.IsAlive) > 1)
+            {
                 Server.SendWorldState(Serializer.SerializeWorldState(WorldState));
+
+                for (var i = 0; i < Server.MaxConnections; i++)
+                    WorldState.Characters[i].IsAlive = WorldState.Characters[i].IsAlive && Server.ConnectionStatuses[i];
+            }
             else
+            {
                 Server.BroadcastGameOver();
+                
+                Server.State = new LobbyState(Server);
+            }
         }
     }
 }

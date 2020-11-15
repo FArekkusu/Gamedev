@@ -15,7 +15,7 @@ namespace ShooterClient
             }
             finally
             {
-                if (game.Client.ConnectionSet)
+                if (game.Client.State != ClientState.Disconnected)
                     game.Client.DisconnectFromServer();
             }
         }

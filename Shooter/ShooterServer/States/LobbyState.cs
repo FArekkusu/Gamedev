@@ -9,7 +9,7 @@ namespace ShooterServer
         public const int PreparationTime = 5_000;
         public const int TickLength = 1_000;
         
-        public int TicksLeft = -1;
+        public int TicksLeft = PreparationTime / TickLength;
 
         public LobbyState(Server server) : base(server) {}
 
@@ -28,7 +28,7 @@ namespace ShooterServer
                 Server.SendConnectionAccepted(endpoint, id);
             }
             else
-                Server.SendConnectionDenied(endpoint, id);
+                Server.SendConnectionDenied(endpoint);
         }
 
         public override void HandleDisconnect(IPEndPoint endpoint)
@@ -37,6 +37,18 @@ namespace ShooterServer
                 
             if (id > -1)
                 Server.ConnectionStatuses[id] = false;
+        }
+
+        public override void HandlePing(IPEndPoint endpoint)
+        {
+            var id = Server.FindUserSlot(endpoint);
+
+            if (id > -1)
+            {
+                Server.ConnectionLastReceived[id] = DateTime.Now;
+                
+                Server.SendAcknowledge(endpoint);
+            }
         }
 
         public override void Update()

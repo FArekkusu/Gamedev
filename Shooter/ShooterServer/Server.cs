@@ -32,10 +32,13 @@ namespace ShooterServer
         {
             while (true)
             {
-                var datagram = await ReceiveAsync();
+                var (success, result) = await SafeCommunicator.Receive(this);
                 
-                var sender = datagram.RemoteEndPoint;
-                var (protocolId, packetType, packetContent) = Datagram.Parse(datagram.Buffer);
+                if (!success)
+                    continue;
+
+                var sender = result.RemoteEndPoint;
+                var (protocolId, packetType, packetContent) = Datagram.Parse(result.Buffer);
 
                 if (protocolId != Datagram.ProtocolId)
                     continue;
@@ -92,21 +95,53 @@ namespace ShooterServer
             return ConnectionStatuses.Count(isConnected => isConnected);
         }
 
-        public async void SendConnectionAccepted(IPEndPoint endpoint, int id)
+        public async void SendAndCheck(byte[] datagram, IPEndPoint endpoint)
+        {
+            var success = await SafeCommunicator.Send(this, datagram, endpoint);
+
+            if (!success)
+                for (var i = 0; i < MaxConnections; i++)
+                    if (ConnectionAddresses[i].Equals(endpoint))
+                        ConnectionStatuses[i] = false;
+        }
+
+        public void SendConnectionAccepted(IPEndPoint endpoint, int id)
         {
             var datagram = Datagram.Build(PacketType.ConnectionAccepted, new [] {(byte)id});
-
-            await SendAsync(datagram, datagram.Length, endpoint);
+            
+            CheckLastReceived();
+            
+            SendAndCheck(datagram, endpoint);
         }
         
-        public async void SendConnectionDenied(IPEndPoint endpoint, int id)
+        public async void SendConnectionDenied(IPEndPoint endpoint)
         {
-            var datagram = Datagram.Build(PacketType.ConnectionDenied, new [] {(byte)id});
+            var datagram = Datagram.Build(PacketType.ConnectionDenied);
 
-            await SendAsync(datagram, datagram.Length, endpoint);
+            await SafeCommunicator.Send(this, datagram, endpoint);
         }
 
-        public async void SendWorldState(byte[] bytes)
+        public void SendPing()
+        {
+            var datagram = Datagram.Build(PacketType.Ping);
+
+            CheckLastReceived();
+            
+            for (var i = 0; i < MaxConnections; i++)
+                if (ConnectionStatuses[i])
+                    SendAndCheck(datagram, ConnectionAddresses[i]);
+        }
+
+        public void SendAcknowledge(IPEndPoint endpoint)
+        {
+            var datagram = Datagram.Build(PacketType.Acknowledge);
+            
+            CheckLastReceived();
+
+            SendAndCheck(datagram, endpoint);
+        }
+
+        public void SendWorldState(byte[] bytes)
         {
             var datagram = Datagram.Build(PacketType.WorldState, bytes);
 
@@ -114,10 +149,10 @@ namespace ShooterServer
             
             for (var i = 0; i < MaxConnections; i++)
                 if (ConnectionStatuses[i])
-                    await SendAsync(datagram, datagram.Length, ConnectionAddresses[i]);
+                    SendAndCheck(datagram, ConnectionAddresses[i]);
         }
 
-        public async void SendGameOver()
+        public void SendGameOver()
         {
             var datagram = Datagram.Build(PacketType.GameOver);
 
@@ -125,22 +160,16 @@ namespace ShooterServer
             
             for (var i = 0; i < MaxConnections; i++)
                 if (ConnectionStatuses[i])
-                    await SendAsync(datagram, datagram.Length, ConnectionAddresses[i]);
+                    SendAndCheck(datagram, ConnectionAddresses[i]);
         }
 
-        public async void BroadcastGameOver()
+        public void BroadcastGameOver()
         {
             for (var i = 0; i < 10; i++)
-            {
                 SendGameOver();
-                    
-                await Task.Delay(100);
-            }
-                
+
             for (var i = 0; i < MaxConnections; i++)
                 ConnectionStatuses[i] = false;
-                
-            State = new LobbyState(this);
         }
     }
 }

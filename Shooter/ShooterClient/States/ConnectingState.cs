@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -11,12 +10,12 @@ namespace ShooterClient
         
         public Button StartGameButton;
         public InputField IpInput;
-        public DateTime NextPingTime;
+        public DateTime NextPingTime = DateTime.MaxValue;
 
         public ConnectingState(MyGame game) : base(game)
         {
             var font = Game.Content.Load<SpriteFont>("MenuFont");
-            
+
             IpInput = new InputField(new Vector2(10, 10), font, Game.GraphicsDevice, 15);
             
             StartGameButton = new Button(new Vector2(100, 100), font, "Start game", (o, args) =>
@@ -24,17 +23,7 @@ namespace ShooterClient
                 Game.Client.NewConnect(IpInput.Content, 32123);
                 
                 for (var i = 0; i < 10; i++)
-                {
                     Game.Client.ConnectToServer();
-                    
-                    Thread.Sleep(200);
-
-                    if (Game.Client.State == ClientState.InLobby || Game.Client.State == ClientState.Denied)
-                        break;
-                }
-                
-                if (Game.Client.State == ClientState.InLobby)
-                    NextPingTime = DateTime.Now;
             });
         }
         
@@ -44,6 +33,9 @@ namespace ShooterClient
             StartGameButton.Update();
 
             var now = DateTime.Now;
+
+            if (Game.Client.State == ClientState.InLobby && NextPingTime == DateTime.MaxValue)
+                NextPingTime = now;
             
             if (now >= NextPingTime && Game.Client.State == ClientState.InLobby)
             {
