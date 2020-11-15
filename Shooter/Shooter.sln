@@ -1,10 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShooterGame", "ShooterGame\ShooterGame.csproj", "{4FB73CEF-062A-4582-890C-C389AF2BB8BA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Geometry", "Geometry\Geometry.csproj", "{79088DF0-023C-4414-BE5F-FF74442E17E2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{48190072-C923-4AB7-897F-7872AFECB158}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShooterCore", "ShooterCore\ShooterCore.csproj", "{BD1C1F93-B858-43EF-9687-39C713E4777F}"
 EndProject
