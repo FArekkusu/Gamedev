@@ -1,4 +1,4 @@
-﻿namespace ShooterCore
+﻿namespace ShooterCore.Buffs
 {
     public enum ModifierReplacementStrategy
     {

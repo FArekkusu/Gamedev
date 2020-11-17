@@ -2,7 +2,7 @@
 using System.Net;
 using System.Threading;
 
-namespace ShooterServer
+namespace ShooterServer.States
 {
     public class LobbyState : ServerState
     {
@@ -58,7 +58,7 @@ namespace ShooterServer
         {
             var connectedCount = Server.CountConnected();
 
-            if (connectedCount < 2)
+            if (connectedCount < Server.MinimumRequiredPlayers)
                 TicksLeft = PreparationTime / TickLength;
             else if (TicksLeft > 0)
             {

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Net;
 
-namespace ShooterServer
+namespace ShooterServer.States
 {
     public abstract class ServerState
     {
-        public Server Server;
+        public readonly Server Server;
 
         protected ServerState(Server server)
         {

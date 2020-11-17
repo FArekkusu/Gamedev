@@ -1,42 +1,47 @@
 ﻿using System.Collections.Generic;
 using ShooterCore;
+using ShooterCore.Buffs;
+using ShooterCore.Objects;
 
 namespace ShooterServer
 {
     public static class Presets
     {
-        public static WorldState TestWorldState = new WorldState
+        public const int CharacterRadius = 20; // hard-coded for existing character texture
+        public static readonly (int, int) PickupDimensions = (32, 32); // hard-coded for existing pickup textures
+        
+        public static readonly WorldState TestWorldState = new WorldState
         {
             Characters = new List<Character>
             {
-                new Character((100, 100), 20),
-                new Character((100, 200), 20),
-                new Character((200, 100), 20),
-                new Character((200, 200), 20),
+                new Character((75, 75), CharacterRadius),
+                new Character((75, 330), CharacterRadius),
+                new Character((430, 75), CharacterRadius),
+                new Character((430, 330), CharacterRadius),
             },
             Walls = new List<Wall>
             {
-                new Wall((10, 10), 310, 5),
-                new Wall((10, 10), 5, 310),
-                new Wall((10, 315), 310, 5),
-                new Wall((315, 10), 5, 310),
+                new Wall((0, 0), 510, 5),
+                new Wall((0, 0), 5, 410),
+                new Wall((0, 405), 510, 5),
+                new Wall((505, 0), 5, 410),
             }
         };
 
-        public static List<Buff> TestBuffs = new List<Buff>
+        public static readonly List<Buff> TestBuffs = new List<Buff>
         {
-            new Buff(BuffType.CharacterSpeed, Modifier.IncreaseCharacterSpeed, Modifier.DecreaseCharacterSpeed, ModifierReplacementStrategy.Replace, 5, (32, 32)),
-            new Buff(BuffType.CharacterDamage, Modifier.IncreaseCharacterDamage, Modifier.DecreaseCharacterDamage, ModifierReplacementStrategy.Replace, 5, (32, 32)),
-            new Buff(BuffType.CharacterHealth, Modifier.IncreaseCharacterHealth, Modifier.DoNothing, ModifierReplacementStrategy.Append, 0, (32, 32)),
-            new Buff(BuffType.BulletSpeed, Modifier.IncreaseBulletSpeed, Modifier.DecreaseBulletSpeed, ModifierReplacementStrategy.Replace, 5, (32, 32)),
+            new Buff(BuffType.CharacterSpeed, Modifier.IncreaseCharacterSpeed, Modifier.ResetCharacterSpeed, ModifierReplacementStrategy.Replace, 5, PickupDimensions),
+            new Buff(BuffType.CharacterDamage, Modifier.IncreaseCharacterDamage, Modifier.ResetCharacterDamage, ModifierReplacementStrategy.Replace, 5, PickupDimensions),
+            new Buff(BuffType.CharacterHealth, Modifier.IncreaseCharacterHealth, Modifier.DoNothing, ModifierReplacementStrategy.Append, 0, PickupDimensions),
+            new Buff(BuffType.BulletSpeed, Modifier.IncreaseBulletSpeed, Modifier.ResetBulletSpeed, ModifierReplacementStrategy.Replace, 5, PickupDimensions),
         };
         
-        public static List<(double, double)> TestBuffPositions = new List<(double, double)>
+        public static readonly List<(double, double)> TestBuffPositions = new List<(double, double)>
         {
-            (20, 20),
-            (70, 20),
-            (120, 20),
-            (170, 20),
+            (239, 15),
+            (239, 363),
+            (15, 189),
+            (463, 189),
         };
     }
 }

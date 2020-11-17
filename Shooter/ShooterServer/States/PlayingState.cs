@@ -5,21 +5,22 @@ using System.Net;
 using Network;
 using ShooterCore;
 
-namespace ShooterServer
+namespace ShooterServer.States
 {
     public class PlayingState : ServerState
     {
         public const int SimulationTimeStep = 20;
+        public const double TimeDelta = SimulationTimeStep / 1000.0;
         
-        public WorldState WorldState;
-        public PickupManager PickupManager;
-        public Dictionary<int, int> LastPerformedActions = new Dictionary<int, int>();
+        public readonly WorldState WorldState;
+        public readonly PickupManager PickupManager;
+        public readonly Dictionary<int, int> LastPerformedActions = new Dictionary<int, int>();
         
         public DateTime NextUpdate;
 
-        public List<(int, int, ShooterCore.Action)> Actions = new List<(int, int, ShooterCore.Action)>();
+        public readonly List<(int, int, ShooterCore.Action)> Actions = new List<(int, int, ShooterCore.Action)>();
         
-        public object Synchronizer = new object();
+        public readonly object Synchronizer = new object();
 
         public PlayingState(Server server, WorldState worldState, PickupManager pickupManager) : base(server)
         {
@@ -61,7 +62,7 @@ namespace ShooterServer
                     
                     actions.Add((actionId, action));
 
-                    current += 5 + (action.IsShooting ? sizeof(double) : 0);
+                    current += sizeof(int) + 1 + (action.IsShooting ? sizeof(double) : 0);
                 }
                 
                 lock (Synchronizer)
@@ -79,26 +80,24 @@ namespace ShooterServer
             
             lock (Synchronizer)
             {
-                var timeDelta = SimulationTimeStep / 1000.0;
-                
-                PickupManager.Update(timeDelta);
+                PickupManager.Update(WorldState.Pickups, TimeDelta);
 
-                ObjectsUpdater.UpdateCharactersStatuses(WorldState.Characters, timeDelta);
+                ObjectsUpdater.UpdateCharactersStatuses(WorldState.Characters, TimeDelta);
 
                 var actions = Actions.OrderBy(action => (action.Item2, action.Item1));
                 
-                ObjectsUpdater.PerformActions(actions, WorldState.Characters, WorldState.Bullets, WorldState.Pickups, WorldState.Walls, PickupManager, LastPerformedActions, timeDelta);
+                ObjectsUpdater.PerformActions(actions, WorldState.Characters, WorldState.Bullets, WorldState.Pickups, WorldState.Walls, PickupManager, LastPerformedActions);
 
                 Actions.Clear();
                 
-                ObjectsUpdater.UpdateBullets(WorldState.Bullets, WorldState.Characters, WorldState.Walls, timeDelta);
+                ObjectsUpdater.UpdateBullets(WorldState.Bullets, WorldState.Characters, WorldState.Walls, TimeDelta);
                 
                 WorldState.Bullets = WorldState.Bullets.Where(bullet => bullet.IsAlive).ToList();
             }
             
             NextUpdate = DateTime.Now + TimeSpan.FromMilliseconds(SimulationTimeStep);
 
-            if (WorldState.Characters.Count(character => character.IsAlive) > 1)
+            if (WorldState.Characters.Count(character => character.IsAlive) >= Server.MinimumRequiredPlayers)
             {
                 Server.SendWorldState(Serializer.SerializeWorldState(WorldState));
 

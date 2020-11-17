@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using ShooterCore;
+using ShooterCore.Buffs;
+using ShooterCore.Objects;
 
 namespace ShooterClient
 {
     public class Renderer
     {
-        public SpriteBatch SpriteBatch;
+        public const double RotationCorrection = Math.PI / 2;
+        
+        public readonly SpriteBatch SpriteBatch;
 
         public Renderer(SpriteBatch spriteBatch)
         {
@@ -27,7 +30,7 @@ namespace ShooterClient
             var position = new Vector2((float)circle.X, (float)circle.Y);
             var origin = new Vector2((float)circle.Radius);
 
-            var rotation = (float)(Math.Atan2(mouseState.Y - position.Y, mouseState.X - position.X) + Directions.Down);
+            var rotation = (float)(Math.Atan2(mouseState.Y - position.Y, mouseState.X - position.X) + RotationCorrection);
 
             SpriteBatch.Draw(texture, position, null, Color.White, rotation, origin, 1, SpriteEffects.None, 0);
         }

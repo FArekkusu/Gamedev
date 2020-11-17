@@ -1,10 +1,10 @@
 ﻿using Geometry;
 
-namespace ShooterCore
+namespace ShooterCore.Objects
 {
     public abstract class RectangularObject : GameObject
     {
-        public Rectangle Rectangle;
+        public readonly Rectangle Rectangle;
 
         protected RectangularObject(Rectangle rectangle)
         {

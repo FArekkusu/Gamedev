@@ -1,12 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace ShooterClient
+namespace ShooterClient.UI
 {
     public class TextField
     {
-        public Vector2 Position;
-        public SpriteFont Font;
+        public readonly Vector2 Position;
+        public readonly SpriteFont Font;
 
         public TextField(Vector2 position, SpriteFont font)
         {

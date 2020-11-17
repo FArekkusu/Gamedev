@@ -2,16 +2,18 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Network;
+using ShooterClient.States;
 
 namespace ShooterClient
 {
     public class Client : UdpClient
     {
         public const int ConnectionTimeOutMillis = 5_000;
+        public const int DelayMills = 500;
         
         public static (string, int) EmptyConnection = ("", 0);
         
-        public MyGame Game;
+        public readonly MyGame Game;
         public ClientState State = ClientState.Disconnected;
         public int ServerAssignedId;
 
@@ -35,8 +37,15 @@ namespace ShooterClient
             
             if (CurrentConnection != EmptyConnection)
                 DisconnectFromServer();
-            
-            Connect(hostName, port);
+
+            try
+            {
+                Connect(hostName, port);
+            }
+            catch (SocketException)
+            {
+                return;
+            }
 
             CurrentConnection = (hostName, port);
             LastReceivedId = 0;
@@ -47,6 +56,13 @@ namespace ShooterClient
         {
             while (true)
             {
+                if (CurrentConnection == EmptyConnection)
+                {
+                    await Task.Delay(DelayMills);
+                    
+                    continue;
+                }
+                
                 var (success, result) = await SafeCommunicator.Receive(this);
 
                 if (!success)
@@ -56,9 +72,9 @@ namespace ShooterClient
                     continue;
                 }
 
-                var (protocolId, packetId, packetType, packetContent) = Datagram.Parse(result.Buffer);
+                var (protocolId, packetId, packetType, packetContent, isValid) = Datagram.Parse(result.Buffer);
 
-                if (protocolId != Datagram.ProtocolId || packetId < LastReceivedId)
+                if (protocolId != Datagram.ProtocolId || !isValid || packetId < LastReceivedId)
                     continue;
 
                 LastReceivedId = packetId;

@@ -1,6 +1,6 @@
 ﻿using Geometry;
 
-namespace ShooterCore
+namespace ShooterCore.Objects
 {
     public class Wall : RectangularObject
     {

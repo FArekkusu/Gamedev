@@ -5,7 +5,7 @@ using System.Threading;
 using Network;
 using ShooterCore;
 
-namespace ShooterServer
+namespace ShooterServer.States
 {
     public class PreparationState : ServerState
     {
@@ -15,19 +15,16 @@ namespace ShooterServer
         
         public int TicksLeft = PreparationTime / TickLength;
 
-        public WorldState WorldState;
-        public PickupManager PickupManager;
-        public bool[] ReceivedWorldData;
+        public readonly WorldState WorldState;
+        public readonly PickupManager PickupManager;
+        public readonly bool[] ReceivedWorldData = new bool[Server.MaxConnections];
 
         public PreparationState(Server server, WorldState worldState) : base(server)
         {
             WorldState = Serializer.DeserializeWorldState(Serializer.SerializeWorldState(worldState));
-            
-            PickupManager = new PickupManager(WorldState, Presets.TestBuffs, Presets.TestBuffPositions, Server.Random);
+            PickupManager = new PickupManager(Presets.TestBuffs, Presets.TestBuffPositions, Server.Random);
             
             WorldState.RandomizeCharactersPositions(Server.Random);
-
-            ReceivedWorldData = new bool[Server.MaxConnections];
 
             for (var i = 0; i < Server.MaxConnections; i++)
             {
@@ -69,7 +66,7 @@ namespace ShooterServer
         {
             var connectedCount = Server.CountConnected();
 
-            if (connectedCount < 2)
+            if (connectedCount < Server.MinimumRequiredPlayers)
             {
                 Server.BroadcastGameOver();
                 

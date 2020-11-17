@@ -2,11 +2,11 @@
 {
     public class Action
     {
-        public int Dx;
-        public int Dy;
-        public bool IsShooting;
-        public int MouseX;
-        public int MouseY;
+        public readonly int Dx;
+        public readonly int Dy;
+        public readonly bool IsShooting;
+        public readonly int MouseX;
+        public readonly int MouseY;
 
         public Action(int dx, int dy, bool isShooting, int mouseX, int mouseY)
         {

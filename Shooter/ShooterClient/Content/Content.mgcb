@@ -73,6 +73,13 @@
 /processorParam:TextureFormat=Color
 /build:Bullet.png
 
+#begin CharacterStatsFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:CharacterStatsFont.spritefont
+
 #begin ConnectionFont.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor

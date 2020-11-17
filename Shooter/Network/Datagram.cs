@@ -7,13 +7,13 @@ namespace Network
     {
         public const long ProtocolId = 546886159060960807;
         
-        public static byte[] ProtocolIdBytes = BitConverter.GetBytes(ProtocolId);
+        public static readonly byte[] ProtocolIdBytes = BitConverter.GetBytes(ProtocolId);
         
         public static byte[] Build(int packetId, PacketType packetType, byte[] bytes = null)
         {
             bytes ??= new byte[0];
             
-            var datagram = new byte[sizeof(long) + sizeof(int) + 1 + bytes.Length];
+            var datagram = new byte[sizeof(long) + sizeof(int) + 1 + bytes.Length + 1];
             var current = 0;
             
             foreach (var b in ProtocolIdBytes)
@@ -26,11 +26,13 @@ namespace Network
 
             foreach (var b in bytes)
                 datagram[current++] = b;
+
+            datagram[current] = (byte)datagram.Aggregate(0, (checkSum, b) => checkSum ^ b);
             
             return datagram;
         }
 
-        public static (long, int, PacketType, byte[]) Parse(byte[] bytes)
+        public static (long, int, PacketType, byte[], bool) Parse(byte[] bytes)
         {
             var current = 0;
             
@@ -43,9 +45,11 @@ namespace Network
             var packetType = (PacketType)bytes[current];
             current++;
 
-            var data = bytes.Skip(current).ToArray();
+            var data = bytes.Take(bytes.Length - 1).Skip(current).ToArray();
+            
+            var isValid = bytes.Aggregate(0, (checkSum, b) => checkSum ^ b) == 0;
 
-            return (protocolId, packetId, packetType, data);
+            return (protocolId, packetId, packetType, data, isValid);
         }
     }
 }

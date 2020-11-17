@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Geometry;
+using ShooterCore.Buffs;
+using ShooterCore.Objects;
 
 namespace ShooterCore
 {

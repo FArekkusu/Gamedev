@@ -1,6 +1,7 @@
 ﻿using System;
+using ShooterCore.Objects;
 
-namespace ShooterCore
+namespace ShooterCore.Buffs
 {
     public class Buff : IEquatable<Buff>
     {

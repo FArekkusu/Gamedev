@@ -1,16 +1,14 @@
 ﻿using Geometry;
 
-namespace ShooterCore
+namespace ShooterCore.Objects
 {
     public abstract class CircularObject : GameObject
     {
-        public Circle Circle;
-        public double Rotation;
+        public readonly Circle Circle;
 
-        protected CircularObject(Circle circle, float rotation)
+        protected CircularObject(Circle circle)
         {
             Circle = circle;
-            Rotation = rotation;
         }
     }
 }

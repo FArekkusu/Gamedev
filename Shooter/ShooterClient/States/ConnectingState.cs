@@ -1,17 +1,18 @@
 ﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ShooterClient.UI;
 
-namespace ShooterClient
+namespace ShooterClient.States
 {
     public class ConnectingState : GameState
     {
         public const int NextPingMillis = 1_000;
 
-        public InputField IpInput;
-        public TextField ConnectionStatus;
-        public Button ConnectButton;
-        public Button DisconnectButton;
+        public readonly InputField IpInput;
+        public readonly TextField ConnectionStatus;
+        public readonly Button ConnectButton;
+        public readonly Button DisconnectButton;
         public DateTime NextPingTime = DateTime.MaxValue;
 
         public ConnectingState(MyGame game) : base(game)

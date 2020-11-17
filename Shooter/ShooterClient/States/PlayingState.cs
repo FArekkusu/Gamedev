@@ -3,24 +3,30 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Network;
+using ShooterClient.UI;
 using ShooterCore;
+using ShooterCore.Buffs;
+using ShooterCore.Objects;
 
-namespace ShooterClient
+namespace ShooterClient.States
 {
     public class PlayingState : GameState
     {
         public WorldState WorldState;
         
-        public Renderer Renderer;
+        public readonly Renderer Renderer;
 
         public Texture2D BulletTexture;
         public Texture2D CharacterTexture;
         public Texture2D EnemyTexture;
-        public Dictionary<BuffType, Texture2D> PickupTextures = new Dictionary<BuffType, Texture2D>();
-        public Dictionary<(double, double), Texture2D> WallTextures = new Dictionary<(double, double), Texture2D>();
+        public readonly Dictionary<BuffType, Texture2D> PickupTextures = new Dictionary<BuffType, Texture2D>();
+        public readonly Dictionary<(double, double), Texture2D> WallTextures = new Dictionary<(double, double), Texture2D>();
+
+        public SpriteFont CharacterStatsFont;
+        public readonly TextField CharacterHealth;
 
         public int NextActionId;
-        public FiniteQueue Actions = new FiniteQueue();
+        public readonly FiniteQueue Actions = new FiniteQueue();
 
         public PlayingState(MyGame game, WorldState worldState) : base(game)
         {
@@ -29,6 +35,8 @@ namespace ShooterClient
             Renderer = new Renderer(Game.SpriteBatch);
             
             LoadTextures();
+            
+            CharacterHealth = new TextField(new Vector2(20, 420), CharacterStatsFont);
 
             foreach (var wall in WorldState.Walls)
                 GenerateWallTexture(wall);
@@ -44,6 +52,8 @@ namespace ShooterClient
             PickupTextures[BuffType.CharacterDamage] = Game.Content.Load<Texture2D>("BuffCharacterDamage");
             PickupTextures[BuffType.CharacterHealth] = Game.Content.Load<Texture2D>("BuffCharacterHealth");
             PickupTextures[BuffType.BulletSpeed] = Game.Content.Load<Texture2D>("BuffBulletSpeed");
+
+            CharacterStatsFont = Game.Content.Load<SpriteFont>("CharacterStatsFont");
         }
 
         public override void Update()
@@ -72,6 +82,12 @@ namespace ShooterClient
 
         public override void Draw()
         {
+            foreach (var wall in WorldState.Walls)
+                Renderer.Draw(wall, WallTextures);
+            
+            foreach (var (rectangle, buffType) in WorldState.Pickups)
+                Renderer.Draw(rectangle.LeftX, rectangle.UpperY, buffType, PickupTextures);
+            
             foreach (var bullet in WorldState.Bullets)
                 Renderer.Draw(bullet, BulletTexture);
             
@@ -80,12 +96,10 @@ namespace ShooterClient
                     Renderer.DrawPlayableCharacter(WorldState.Characters[i], CharacterTexture);
                 else
                     Renderer.Draw(WorldState.Characters[i], EnemyTexture);
-            
-            foreach (var (rectangle, buffType) in WorldState.Pickups)
-                Renderer.Draw(rectangle.LeftX, rectangle.UpperY, buffType, PickupTextures);
-            
-            foreach (var wall in WorldState.Walls)
-                Renderer.Draw(wall, WallTextures);
+
+            var hp = WorldState.Characters[Game.Client.ServerAssignedId].Hp;
+            var color = hp > 70 ? Color.Green : hp > 40 ? Color.Orange : Color.Red;
+            CharacterHealth.Draw(Renderer.SpriteBatch, "Health: " + hp, color);
         }
         
         public void GenerateWallTexture(Wall wall)

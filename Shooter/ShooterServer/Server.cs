@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Network;
+using ShooterServer.States;
 
 namespace ShooterServer
 {
@@ -11,16 +12,17 @@ namespace ShooterServer
     {
         public const int Port = 32123;
         public const int MaxConnections = 4;
+        public const int MinimumRequiredPlayers = 2;
         public const int ConnectionTimeOutMillis = 5_000;
         public const int LobbyTimeOutMinutes = 10;
 
-        public static Random Random = new Random();
+        public static readonly Random Random = new Random();
         
         public ServerState State;
 
         public DateTime LastZeroConnected;
         
-        public Connection[] Connections = new Connection[MaxConnections];
+        public readonly Connection[] Connections = new Connection[MaxConnections];
 
         public int NextSentId = 1;
 
@@ -43,9 +45,9 @@ namespace ShooterServer
                     continue;
 
                 var sender = result.RemoteEndPoint;
-                var (protocolId, packetId, packetType, packetContent) = Datagram.Parse(result.Buffer);
+                var (protocolId, packetId, packetType, packetContent, isValid) = Datagram.Parse(result.Buffer);
 
-                if (protocolId != Datagram.ProtocolId)
+                if (protocolId != Datagram.ProtocolId || !isValid)
                     continue;
 
                 var userId = FindUserSlot(sender);

@@ -7,7 +7,7 @@ namespace ShooterClient
     {
         public const int MaxLength = 8;
 
-        public List<byte[]> Items = new List<byte[]>();
+        public readonly List<byte[]> Items = new List<byte[]>();
 
         public void Add(byte[] action)
         {

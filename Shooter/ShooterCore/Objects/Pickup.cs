@@ -1,6 +1,7 @@
 ﻿using Geometry;
+using ShooterCore.Buffs;
 
-namespace ShooterCore
+namespace ShooterCore.Objects
 {
     public class Pickup : RectangularObject
     {

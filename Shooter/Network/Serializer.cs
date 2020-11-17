@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Geometry;
 using ShooterCore;
+using ShooterCore.Buffs;
+using ShooterCore.Objects;
 
 namespace Network
 {
@@ -138,7 +140,7 @@ namespace Network
             var charactersCount = (int)bytes[current++];
             for (var i = 0; i < charactersCount; i++)
             {
-                var isAlive = (bytes[current] & 128) > 0;
+                var isAlive = (bytes[current] & 128) == 128;
                 
                 var hp = bytes[current++] & 127;
                 

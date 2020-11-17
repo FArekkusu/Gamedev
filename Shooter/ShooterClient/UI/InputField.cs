@@ -3,56 +3,56 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace ShooterClient
+namespace ShooterClient.UI
 {
     public class InputField
     {
-        public Vector2 TextPosition;
-        public SpriteFont Font;
-        public int MaxLength;
-        public string Content;
-
         public const int VPadding = 5;
         private const int BorderWidth = 2;
         
-        public Vector2 BoxPosition;
-        public Texture2D BoxTexture;
+        public readonly Vector2 Position;
+        public readonly Texture2D Texture;
         public bool IsFocused;
         
+        public readonly Vector2 TextPosition;
+        public readonly SpriteFont Font;
+        public readonly int MaxLength;
+        public string Content;
+
         public KeyboardState PreviousKeyboardState;
         public MouseState PreviousMouseState;
         
-        public Dictionary<Keys, string> Symbols = new Dictionary<Keys, string>
+        public readonly Dictionary<Keys, string> Symbols = new Dictionary<Keys, string>
         {
             {Keys.D0, "0"}, {Keys.D1, "1"}, {Keys.D2, "2"}, {Keys.D3, "3"}, {Keys.D4, "4"},
             {Keys.D5, "5"}, {Keys.D6, "6"}, {Keys.D7, "7"}, {Keys.D8, "8"}, {Keys.D9, "9"},
             {Keys.OemPeriod, "."}
         };
 
-        public InputField(Vector2 boxPosition, SpriteFont font, GraphicsDevice graphicsDevice, int maxLength, string content = "127.0.0.1")
+        public InputField(Vector2 position, SpriteFont font, GraphicsDevice graphicsDevice, int maxLength, string content = "127.0.0.1")
         {
-            var (x, y) = boxPosition;
+            var (x, y) = position;
             
             TextPosition = new Vector2(x + VPadding, y);
             Font = font;
             MaxLength = maxLength;
             Content = content;
 
-            BoxPosition = boxPosition;
-            BoxTexture = GenerateBox(graphicsDevice);
+            Position = position;
+            Texture = GenerateBox(graphicsDevice);
             UpdateBoxColor();
         }
 
         public void UpdateBoxColor()
         {
-            var w = BoxTexture.Width;
-            var h = BoxTexture.Height;
+            var w = Texture.Width;
+            var h = Texture.Height;
 
             var data = new Color[w * h];
             for (var i = 0; i < data.Length; i++)
                 data[i] = i < w * BorderWidth || i >= w * (h - BorderWidth) || i % w < BorderWidth || i % w >= w - BorderWidth ? Color.Black : IsFocused ? Color.White : Color.LightGray;
 
-            BoxTexture.SetData(data);
+            Texture.SetData(data);
         }
         
         public Texture2D GenerateBox(GraphicsDevice graphicsDevice)
@@ -66,7 +66,7 @@ namespace ShooterClient
             var mouseState = Mouse.GetState();
             var mouseRectangle = new Rectangle(mouseState.X, mouseState.Y, 1, 1);
             
-            var textRectangle = new Rectangle((int)BoxPosition.X, (int)BoxPosition.Y, BoxTexture.Width, BoxTexture.Height);
+            var textRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
 
             if (PreviousMouseState.LeftButton == ButtonState.Pressed && mouseState.LeftButton == ButtonState.Released)
             {
@@ -109,7 +109,7 @@ namespace ShooterClient
         
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(BoxTexture, BoxPosition, Color.White);
+            spriteBatch.Draw(Texture, Position, Color.White);
             spriteBatch.DrawString(Font, Content, TextPosition, Color.Black);
         }
     }

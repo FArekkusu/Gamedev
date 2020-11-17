@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Geometry;
+using ShooterCore.Buffs;
+using ShooterCore.Objects;
 
 namespace ShooterCore
 {
     public static class ObjectsUpdater
     {
-        public static void PerformActions(IEnumerable<(int, int, Action)> actions, List<Character> characters, List<Bullet> bullets, List<(Rectangle, BuffType)> pickups, List<Wall> walls, PickupManager pickupManager, Dictionary<int, int> lastPerformedActions, double timeDelta)
+        public static void PerformActions(IEnumerable<(int, int, Action)> actions, List<Character> characters, List<Bullet> bullets, List<(Rectangle, BuffType)> pickups, List<Wall> walls, PickupManager pickupManager, Dictionary<int, int> lastPerformedActions)
         {
             foreach (var (playerId, actionId, action) in actions)
             {
@@ -17,7 +19,7 @@ namespace ShooterCore
                 lastPerformedActions[playerId] = actionId;
 
                 if (action.Dx != 0 || action.Dy != 0)
-                    TryMove(characters, walls, playerId, (action.Dx, action.Dy), timeDelta);
+                    TryMove(characters, walls, playerId, (action.Dx, action.Dy));
                         
                 var character = characters[playerId];
                 var circle = character.Circle;
@@ -67,11 +69,11 @@ namespace ShooterCore
             }
         }
         
-        public static void TryMove(List<Character> characters, IEnumerable<Wall> walls, int playerId, (double, double) movementVector, double timeDelta)
+        public static void TryMove(List<Character> characters, IEnumerable<Wall> walls, int playerId, (double, double) movementVector)
         {
             var normalizedMovementVector = Utils.Normalize(movementVector);
             
-            var newCharacter = CreateMovedCharacter(characters[playerId], normalizedMovementVector, timeDelta);
+            var newCharacter = CreateMovedCharacter(characters[playerId], normalizedMovementVector);
             
             var canMove = !IsCollidingWithWalls(newCharacter, walls) && !IsCollidingWithCharacters(newCharacter, characters, playerId);
 
@@ -84,7 +86,7 @@ namespace ShooterCore
             var character = characters[playerId];
             var circle = character.Circle;
                             
-            character.Cooldown = 0.5;
+            character.Cooldown = Character.BaseCooldown;
                             
             bullets.Add(new Bullet((circle.X, circle.Y), 2.5, playerId)
             {
@@ -108,14 +110,14 @@ namespace ShooterCore
             buff.Apply(character);
         }
         
-        public static Character CreateMovedCharacter(Character character, (double, double) movementVector, double timeDelta)
+        public static Character CreateMovedCharacter(Character character, (double, double) movementVector)
         {
             var circle = character.Circle;
 
             var (dx, dy) = movementVector;
                             
-            dx *= character.LinearVelocity * timeDelta;
-            dy *= character.LinearVelocity * timeDelta;
+            dx *= character.LinearVelocity;
+            dy *= character.LinearVelocity;
 
             return new Character((circle.X + dx, circle.Y + dy), circle.Radius)
             {
@@ -176,9 +178,9 @@ namespace ShooterCore
                                 
                 if (i != bullet.ParentId && character.IsAlive && CollisionTester.TestCircleCircle(bullet.Circle, character.Circle))
                 {
-                    character.Hp -= bullet.Damage;
+                    character.Hp = Math.Max(0, character.Hp - bullet.Damage);
 
-                    if (character.Hp <= 0)
+                    if (character.Hp == 0)
                         character.IsAlive = false;
                                     
                     bullet.IsAlive = false;

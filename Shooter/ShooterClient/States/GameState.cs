@@ -1,10 +1,10 @@
-﻿namespace ShooterClient
+﻿namespace ShooterClient.States
 {
     public abstract class GameState
     {
-        public MyGame Game;
+        public readonly MyGame Game;
 
-        public GameState(MyGame game)
+        protected GameState(MyGame game)
         {
             Game = game;
         }

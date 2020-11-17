@@ -1,11 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ShooterClient.States;
 
 namespace ShooterClient
 {
     public class MyGame : Game
     {
-        public GraphicsDeviceManager GraphicsDeviceManager;
+        public readonly GraphicsDeviceManager GraphicsDeviceManager;
         public SpriteBatch SpriteBatch;
 
         public GameState State;
