@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Threading;
 
@@ -59,7 +59,11 @@ namespace ShooterServer.States
             var connectedCount = Server.CountConnected();
 
             if (connectedCount < Server.MinimumRequiredPlayers)
+            {
+                Console.WriteLine($"[Lobby state] {connectedCount} user(s) connected");
+                
                 TicksLeft = PreparationTime / TickLength;
+            }
             else if (TicksLeft > 0)
             {
                 Console.WriteLine($"[Lobby state] Moving to preparation state in {TicksLeft}");
