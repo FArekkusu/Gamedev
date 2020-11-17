@@ -73,6 +73,13 @@
 /processorParam:TextureFormat=Color
 /build:Bullet.png
 
+#begin ConnectionFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:ConnectionFont.spritefont
+
 #begin Enemy.png
 /importer:TextureImporter
 /processor:TextureProcessor

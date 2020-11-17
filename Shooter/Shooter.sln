@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShooterClient", "ShooterCli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShooterServer", "ShooterServer\ShooterServer.csproj", "{500B1D8B-2BC7-4765-84F4-D2642BE597F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Network", "Network\Network.csproj", "{016EDCF2-7E12-4C04-96A5-71F303EE7D4E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{500B1D8B-2BC7-4765-84F4-D2642BE597F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{500B1D8B-2BC7-4765-84F4-D2642BE597F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{500B1D8B-2BC7-4765-84F4-D2642BE597F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{016EDCF2-7E12-4C04-96A5-71F303EE7D4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{016EDCF2-7E12-4C04-96A5-71F303EE7D4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{016EDCF2-7E12-4C04-96A5-71F303EE7D4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{016EDCF2-7E12-4C04-96A5-71F303EE7D4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

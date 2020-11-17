@@ -21,10 +21,13 @@ namespace ShooterServer
                 
             if (id > -1)
             {
-                Server.ConnectionAddresses[id] = endpoint;
-                Server.ConnectionStatuses[id] = true;
-                Server.ConnectionLastReceived[id] = DateTime.Now;
+                if (!Server.Connections[id].IsPresent)
+                    Server.Connections[id].LastReceivedId = 0;
                 
+                Server.Connections[id].Address = endpoint;
+                Server.Connections[id].IsPresent = true;
+                Server.Connections[id].LastReceivedTime = DateTime.Now;
+
                 Server.SendConnectionAccepted(endpoint, id);
             }
             else
@@ -36,7 +39,7 @@ namespace ShooterServer
             var id = Server.FindUserSlot(endpoint);
                 
             if (id > -1)
-                Server.ConnectionStatuses[id] = false;
+                Server.Connections[id].IsPresent = false;
         }
 
         public override void HandlePing(IPEndPoint endpoint)
@@ -45,7 +48,7 @@ namespace ShooterServer
 
             if (id > -1)
             {
-                Server.ConnectionLastReceived[id] = DateTime.Now;
+                Server.Connections[id].LastReceivedTime = DateTime.Now;
                 
                 Server.SendAcknowledge(endpoint);
             }
@@ -59,8 +62,9 @@ namespace ShooterServer
                 TicksLeft = PreparationTime / TickLength;
             else if (TicksLeft > 0)
             {
-                TicksLeft--;
                 Console.WriteLine($"[Lobby state] Moving to preparation state in {TicksLeft}");
+                
+                TicksLeft--;
             }
             else
             {

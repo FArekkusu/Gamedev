@@ -18,7 +18,7 @@ namespace ShooterServer
 
             if (id > -1)
             {
-                Server.ConnectionLastReceived[id] = DateTime.Now;
+                Server.Connections[id].LastReceivedTime = DateTime.Now;
                 
                 Server.SendConnectionAccepted(endpoint, id);
             }
@@ -33,15 +33,15 @@ namespace ShooterServer
             var id = Server.FindUserSlot(endpoint);
                     
             if (id > -1)
-                Server.ConnectionLastReceived[id] = DateTime.Now;
+                Server.Connections[id].LastReceivedTime = DateTime.Now;
         }
-
-        public virtual void HandleInputs(IPEndPoint endpoint, ((int, int), bool, double) data)
+        
+        public virtual void HandleInputs(IPEndPoint endpoint, byte[] data)
         {
             var id = Server.FindUserSlot(endpoint);
                     
             if (id > -1)
-                Server.ConnectionLastReceived[id] = DateTime.Now;
+                Server.Connections[id].LastReceivedTime = DateTime.Now;
         }
 
         public virtual void HandleAcknowledge(IPEndPoint endpoint)
@@ -49,7 +49,7 @@ namespace ShooterServer
             var id = Server.FindUserSlot(endpoint);
                     
             if (id > -1)
-                Server.ConnectionLastReceived[id] = DateTime.Now;
+                Server.Connections[id].LastReceivedTime = DateTime.Now;
         }
         
         public virtual void Update() {}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using ShooterCore;
+using Network;
 
 namespace ShooterClient
 {
@@ -9,11 +9,17 @@ namespace ShooterClient
     {
         public const int ConnectionTimeOutMillis = 5_000;
         
+        public static (string, int) EmptyConnection = ("", 0);
+        
         public MyGame Game;
         public ClientState State = ClientState.Disconnected;
         public int ServerAssignedId;
+
+        public (string, int) CurrentConnection = EmptyConnection;
         
         public DateTime LastReceivedTime = DateTime.MinValue;
+        public int LastReceivedId;
+        public int NextSentId;
 
         public Client(MyGame game)
         {
@@ -24,7 +30,17 @@ namespace ShooterClient
 
         public void NewConnect(string hostName, int port)
         {
+            if (CurrentConnection == (hostName, port) && State != ClientState.Disconnected)
+                return;
+            
+            if (CurrentConnection != EmptyConnection)
+                DisconnectFromServer();
+            
             Connect(hostName, port);
+
+            CurrentConnection = (hostName, port);
+            LastReceivedId = 0;
+            NextSentId = 1;
         }
 
         public async void Listen()
@@ -40,11 +56,13 @@ namespace ShooterClient
                     continue;
                 }
 
-                var (protocolId, packetType, packetContent) = Datagram.Parse(result.Buffer);
+                var (protocolId, packetId, packetType, packetContent) = Datagram.Parse(result.Buffer);
 
-                if (protocolId != Datagram.ProtocolId)
+                if (protocolId != Datagram.ProtocolId || packetId < LastReceivedId)
                     continue;
 
+                LastReceivedId = packetId;
+                
                 if (packetType == PacketType.ConnectionAccepted)
                     HandleConnectionAccepted(packetContent[0]);
                 else if (packetType == PacketType.ConnectionDenied)
@@ -62,7 +80,9 @@ namespace ShooterClient
 
         public void HandleConnectionAccepted(int id)
         {
-            State = ClientState.InLobby;
+            if (State == ClientState.Disconnected)
+                State = ClientState.InLobby;
+            
             LastReceivedTime = DateTime.Now;
 
             ServerAssignedId = id;
@@ -138,17 +158,20 @@ namespace ShooterClient
 
         public void ConnectToServer()
         {
-            var datagram = Datagram.Build(PacketType.Connect);
+            var datagram = Datagram.Build(NextSentId++, PacketType.Connect);
             
             SendAndCheck(datagram);
         }
 
         public void DisconnectFromServer()
         {
-            var datagram = Datagram.Build(PacketType.Disconnect);
-
             for (var i = 0; i < 10; i++)
+            {
+                var datagram = Datagram.Build(NextSentId++, PacketType.Disconnect);
                 SendAndCheck(datagram);
+            }
+
+            HandleConnectionDenied();
         }
 
         public void Ping()
@@ -156,7 +179,7 @@ namespace ShooterClient
             if (CheckLastReceived())
                 return;
 
-            var datagram = Datagram.Build(PacketType.Ping);
+            var datagram = Datagram.Build(NextSentId++, PacketType.Ping);
             
             SendAndCheck(datagram);
         }
@@ -166,14 +189,14 @@ namespace ShooterClient
             if (CheckLastReceived())
                 return;
             
-            var datagram = Datagram.Build(PacketType.Inputs, serializedInputs);
+            var datagram = Datagram.Build(NextSentId++, PacketType.Inputs, serializedInputs);
 
             SendAndCheck(datagram);
         }
 
         public void SendAcknowledge()
         {
-            var datagram = Datagram.Build(PacketType.Acknowledge);
+            var datagram = Datagram.Build(NextSentId++, PacketType.Acknowledge);
             
             SendAndCheck(datagram);
         }

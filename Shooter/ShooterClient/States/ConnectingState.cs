@@ -7,30 +7,44 @@ namespace ShooterClient
     public class ConnectingState : GameState
     {
         public const int NextPingMillis = 1_000;
-        
-        public Button StartGameButton;
+
         public InputField IpInput;
+        public TextField ConnectionStatus;
+        public Button ConnectButton;
+        public Button DisconnectButton;
         public DateTime NextPingTime = DateTime.MaxValue;
 
         public ConnectingState(MyGame game) : base(game)
         {
-            var font = Game.Content.Load<SpriteFont>("MenuFont");
+            var menuFont = Game.Content.Load<SpriteFont>("MenuFont");
+            var connectionFont = Game.Content.Load<SpriteFont>("ConnectionFont");
 
-            IpInput = new InputField(new Vector2(10, 10), font, Game.GraphicsDevice, 15);
+            IpInput = new InputField(new Vector2(10, 10), menuFont, Game.GraphicsDevice, 40);
             
-            StartGameButton = new Button(new Vector2(100, 100), font, "Start game", (o, args) =>
+            ConnectionStatus = new TextField(new Vector2(20, 50), connectionFont);
+            
+            ConnectButton = new Button(new Vector2(30, 100), menuFont, "Connect", (o, args) =>
             {
                 Game.Client.NewConnect(IpInput.Content, 32123);
                 
                 for (var i = 0; i < 10; i++)
                     Game.Client.ConnectToServer();
             });
+            
+            DisconnectButton = new Button(new Vector2(30, 150), menuFont, "Disconnect", (o, args) =>
+            {
+                Game.Client.DisconnectFromServer();
+            });
         }
         
         public override void Update()
         {
-            IpInput.Update();
-            StartGameButton.Update();
+            if (Game.IsActive)
+            {
+                IpInput.Update();
+                ConnectButton.Update();
+                DisconnectButton.Update();
+            }
 
             var now = DateTime.Now;
 
@@ -48,7 +62,13 @@ namespace ShooterClient
         public override void Draw()
         {
             IpInput.Draw(Game.SpriteBatch);
-            StartGameButton.Draw(Game.SpriteBatch);
+
+            var content = "Status: " + (Game.Client.State == ClientState.Disconnected ? "Disconnected" : "Connected");
+            var color = Game.Client.State == ClientState.Disconnected ? Color.Red : Color.Green;
+            ConnectionStatus.Draw(Game.SpriteBatch, content, color);
+            
+            ConnectButton.Draw(Game.SpriteBatch);
+            DisconnectButton.Draw(Game.SpriteBatch);
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Network;
 using ShooterCore;
 
 namespace ShooterClient
@@ -18,6 +18,9 @@ namespace ShooterClient
         public Texture2D EnemyTexture;
         public Dictionary<BuffType, Texture2D> PickupTextures = new Dictionary<BuffType, Texture2D>();
         public Dictionary<(double, double), Texture2D> WallTextures = new Dictionary<(double, double), Texture2D>();
+
+        public int NextActionId;
+        public FiniteQueue Actions = new FiniteQueue();
 
         public PlayingState(MyGame game, WorldState worldState) : base(game)
         {
@@ -35,7 +38,7 @@ namespace ShooterClient
         {
             BulletTexture = Game.Content.Load<Texture2D>("Bullet");
             CharacterTexture = Game.Content.Load<Texture2D>("Player");
-            EnemyTexture = Game.Content.Load<Texture2D>("Enemy");
+            EnemyTexture = Game.Content.Load<Texture2D>("EnemyBlank");
 
             PickupTextures[BuffType.CharacterSpeed] = Game.Content.Load<Texture2D>("BuffCharacterSpeed");
             PickupTextures[BuffType.CharacterDamage] = Game.Content.Load<Texture2D>("BuffCharacterDamage");
@@ -45,21 +48,16 @@ namespace ShooterClient
 
         public override void Update()
         {
-            if (!Game.IsActive)
-            {
-                Game.Client.Ping();
+            var action = GetInputs();
 
-                return;
-            }
+            var serializedInput = Serializer.SerializeInput(NextActionId++, action);
 
-            var ((x, y), isShooting, shotDirection) = GetInputs();
+            Actions.Add(serializedInput);
 
-            var serializedInput = Serializer.SerializeInput((x, y), isShooting, shotDirection);
-
-            Game.Client.SendInput(serializedInput);
+            Game.Client.SendInput(Actions.Join());
         }
 
-        public ((int, int), bool, double) GetInputs()
+        public Action GetInputs()
         {
             var keyboardState = Keyboard.GetState();
             var mouseState = Mouse.GetState();
@@ -67,12 +65,9 @@ namespace ShooterClient
             var x = keyboardState.IsKeyDown(Keys.A) ? -1 : keyboardState.IsKeyDown(Keys.D) ? 1 : 0;
             var y = keyboardState.IsKeyDown(Keys.W) ? -1 : keyboardState.IsKeyDown(Keys.S) ? 1 : 0;
             
-            var isShooting = mouseState.LeftButton == ButtonState.Pressed;
-            
-            var circle = WorldState.Characters[Game.Client.ServerAssignedId].Circle;
-            var shotDirection = Math.Atan2(mouseState.Y - circle.Y, mouseState.X - circle.X);
+            var isShooting = mouseState.LeftButton == ButtonState.Pressed && Game.IsActive;
 
-            return ((x, y), isShooting, shotDirection);
+            return new Action(x, y, isShooting, mouseState.X, mouseState.Y);
         }
 
         public override void Draw()

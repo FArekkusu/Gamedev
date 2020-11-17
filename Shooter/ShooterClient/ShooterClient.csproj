@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Network\Network.csproj" />
       <ProjectReference Include="..\ShooterCore\ShooterCore.csproj" />
     </ItemGroup>
 

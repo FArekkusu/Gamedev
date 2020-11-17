@@ -2,23 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Network;
 using ShooterCore;
 
 namespace ShooterServer
 {
     public class PlayingState : ServerState
     {
-        public const int NextUpdateStep = 20;
-        public const int SimulationTimeStep = NextUpdateStep;
+        public const int SimulationTimeStep = 20;
         
         public WorldState WorldState;
         public PickupManager PickupManager;
-        public ObjectsUpdater ObjectsUpdater;
+        public Dictionary<int, int> LastPerformedActions = new Dictionary<int, int>();
         
-        public DateTime LastUpdate;
         public DateTime NextUpdate;
 
-        public List<(int, ((int, int), bool, double))> Actions = new List<(int, ((int, int), bool, double))>();
+        public List<(int, int, ShooterCore.Action)> Actions = new List<(int, int, ShooterCore.Action)>();
         
         public object Synchronizer = new object();
 
@@ -26,10 +25,12 @@ namespace ShooterServer
         {
             WorldState = worldState;
             PickupManager = pickupManager;
-            ObjectsUpdater = new ObjectsUpdater(WorldState, PickupManager);
+            
+            for (var i = 0; i < Server.MaxConnections; i++)
+                if (Server.Connections[i].IsPresent)
+                    LastPerformedActions[i] = -1;
 
-            LastUpdate = DateTime.Now;
-            NextUpdate = LastUpdate + TimeSpan.FromMilliseconds(NextUpdateStep);
+            NextUpdate = DateTime.Now + TimeSpan.FromMilliseconds(SimulationTimeStep);
         }
 
         public override void HandleDisconnect(IPEndPoint endpoint)
@@ -40,7 +41,7 @@ namespace ShooterServer
                 WorldState.Characters[id].IsAlive = false;
         }
 
-        public override void HandleInputs(IPEndPoint endpoint, ((int, int), bool, double) data)
+        public override void HandleInputs(IPEndPoint endpoint, byte[] data)
         {
             var id = Server.FindUserSlot(endpoint);
 
@@ -48,46 +49,61 @@ namespace ShooterServer
             {
                 var now = DateTime.Now;
                 
-                Server.ConnectionLastReceived[id] = now;
+                Server.Connections[id].LastReceivedTime = now;
 
+                var actions = new List<(int, ShooterCore.Action)>();
+                var current = 0;
+
+                while (current < data.Length)
+                {
+                    var slice = data.Skip(current).ToArray();
+                    var (actionId, action) = Serializer.DeserializeInput(slice);
+                    
+                    actions.Add((actionId, action));
+
+                    current += 5 + (action.IsShooting ? sizeof(double) : 0);
+                }
+                
                 lock (Synchronizer)
                 {
-                    Actions.Add((id, data));
+                    foreach (var (actionId, action) in actions)
+                        Actions.Add((id, actionId, action));
                 }
             }
         }
 
         public override void Update()
         {
-            var now = DateTime.Now;
-
-            if (now >= NextUpdate)
+            if (DateTime.Now < NextUpdate)
+                return;
+            
+            lock (Synchronizer)
             {
-                lock (Synchronizer)
-                {
-                    var timeDelta = SimulationTimeStep / 1000.0;
-                    
-                    PickupManager.Update(timeDelta);
-
-                    ObjectsUpdater.UpdateCharactersStatuses(timeDelta);
-                    
-                    ObjectsUpdater.PerformActions(Actions, timeDelta);
-
-                    Actions.Clear();
-                    
-                    ObjectsUpdater.UpdateBullets(timeDelta);
-                }
+                var timeDelta = SimulationTimeStep / 1000.0;
                 
-                LastUpdate = now;
-                NextUpdate += TimeSpan.FromMilliseconds(NextUpdateStep);
+                PickupManager.Update(timeDelta);
+
+                ObjectsUpdater.UpdateCharactersStatuses(WorldState.Characters, timeDelta);
+
+                var actions = Actions.OrderBy(action => (action.Item2, action.Item1));
+                
+                ObjectsUpdater.PerformActions(actions, WorldState.Characters, WorldState.Bullets, WorldState.Pickups, WorldState.Walls, PickupManager, LastPerformedActions, timeDelta);
+
+                Actions.Clear();
+                
+                ObjectsUpdater.UpdateBullets(WorldState.Bullets, WorldState.Characters, WorldState.Walls, timeDelta);
+                
+                WorldState.Bullets = WorldState.Bullets.Where(bullet => bullet.IsAlive).ToList();
             }
+            
+            NextUpdate = DateTime.Now + TimeSpan.FromMilliseconds(SimulationTimeStep);
 
             if (WorldState.Characters.Count(character => character.IsAlive) > 1)
             {
                 Server.SendWorldState(Serializer.SerializeWorldState(WorldState));
 
                 for (var i = 0; i < Server.MaxConnections; i++)
-                    WorldState.Characters[i].IsAlive = WorldState.Characters[i].IsAlive && Server.ConnectionStatuses[i];
+                    WorldState.Characters[i].IsAlive = WorldState.Characters[i].IsAlive && Server.Connections[i].IsPresent;
             }
             else
             {

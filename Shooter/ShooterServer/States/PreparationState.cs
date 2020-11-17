@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Threading;
+using Network;
 using ShooterCore;
 
 namespace ShooterServer
@@ -30,7 +31,7 @@ namespace ShooterServer
 
             for (var i = 0; i < Server.MaxConnections; i++)
             {
-                var isConnected = Server.ConnectionStatuses[i];
+                var isConnected = Server.Connections[i].IsPresent;
                 
                 ReceivedWorldData[i] = !isConnected;
 
@@ -45,7 +46,7 @@ namespace ShooterServer
 
             if (id > -1)
             {
-                Server.ConnectionStatuses[id] = false;
+                Server.Connections[id].IsPresent = false;
                 
                 ReceivedWorldData[id] = true;
                 
@@ -59,7 +60,7 @@ namespace ShooterServer
 
             if (id > -1)
             {
-                Server.ConnectionLastReceived[id] = DateTime.Now;
+                Server.Connections[id].LastReceivedTime = DateTime.Now;
                 ReceivedWorldData[id] = true;
             }
         }
@@ -80,9 +81,9 @@ namespace ShooterServer
                     Server.State = new PlayingState(Server, WorldState, PickupManager);
                 else
                 {
-                    TicksLeft--;
-                    
                     Console.WriteLine($"[Preparation state] Moving to playing state in {TicksLeft}");
+                    
+                    TicksLeft--;
 
                     Server.SendPing();
                     
@@ -92,7 +93,7 @@ namespace ShooterServer
             else
             {
                 for (var i = 0; i < Server.MaxConnections; i++)
-                    if (!Server.ConnectionStatuses[i])
+                    if (!Server.Connections[i].IsPresent)
                         ReceivedWorldData[i] = true;
                 
                 Server.SendWorldState(Serializer.SerializeWorldState(WorldState));

@@ -18,6 +18,9 @@ namespace ShooterClient
 
         public void DrawPlayableCharacter(Character character, Texture2D texture)
         {
+            if (!character.IsAlive)
+                return;
+            
             var mouseState = Mouse.GetState();
                     
             var circle = character.Circle;
