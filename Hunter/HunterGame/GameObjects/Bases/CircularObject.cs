@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameObjects.Bases
 {
     public abstract class CircularObject : GameObject
     {

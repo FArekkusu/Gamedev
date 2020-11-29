@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using HunterGame.GameObjects.Bases;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace HunterGame
+namespace HunterGame.GameObjects.Player
 {
     public class Hunter : Creature
     {

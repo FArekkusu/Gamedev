@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using HunterGame.GameObjects.Boid;
+using HunterGame.GameObjects.Boid.Interfaces;
+using HunterGame.GameObjects.Player;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameObjects.Animals
 {
-    public class Doe : Boid
+    public class Doe : Boid.Boid, IWandering, IFleeing
     {
         public const double FleeingSpeed = 225;
         public const double WanderingSpeed = 75;
         public const double MaxForce = 5;
-        public const double TextureIndependentFearDistance = 70;
-        public const double TextureIndependentCalmingDistance = 100;
+        public const double TextureIndependentFearDistance = 125;
+        public const double TextureIndependentCalmingDistance = 175;
         
         public readonly double FearDistance;
         public readonly double CalmingDistance;
@@ -46,6 +49,8 @@ namespace HunterGame
                 Wander(elapsedTime, worldState);
             else if (State == BoidState.Fleeing)
                 Flee(elapsedTime, worldState);
+            else
+                throw new IncorrectBoidStateException($"Doe cannot be in state {State}");
         }
 
         public void Wander(double elapsedTime, WorldState worldState)
@@ -60,45 +65,58 @@ namespace HunterGame
             }
             
             var otherDoes = close.OfType<Doe>().ToList();
-            var closeDoesFromOtherGroup = otherDoes.Where(doe => doe.Group != Group && (doe.CenterPosition - CenterPosition).Length() <= FearDistance).ToList();
+
+            if (this == Group.Leader && !Group.IsComplete)
+                TryCompleteGroup(otherDoes);
             
             var borderAvoidingForce = GetBordersAvoidingForce(FleeingSpeed, MaxForce);
             var separationForce = GetSeparationForce(otherDoes, SeparationActivationDistance, WanderingSpeed, MaxForce);
 
+            var speed = WanderingSpeed;
+
             if (this == Group.Leader)
-                HandleLeader(closeDoesFromOtherGroup, worldState.Random, borderAvoidingForce);
+                HandleLeader(worldState.Random, borderAvoidingForce);
             else
-                HandleFollower(ref separationForce);
+                HandleFollower(ref speed, ref separationForce);
             
             Acceleration += borderAvoidingForce * 2;
             Acceleration += separationForce * 0.15f;
 
-            ApplyForces(WanderingSpeed * elapsedTime);
+            ApplyForces(speed * elapsedTime);
         }
 
-        public void HandleLeader(List<Doe> closeDoesFromOtherGroup, Random random, Vector2 borderAvoidingForce)
+        public void TryCompleteGroup(IEnumerable<Doe> otherDoes)
         {
-            if (!Group.IsComplete && closeDoesFromOtherGroup.Count > 0)
+            var closest = otherDoes.FirstOrDefault(doe => doe.Group != Group && (doe.CenterPosition - CenterPosition).Length() <= FearDistance);
+                
+            if (closest != null)
             {
-                var otherGroup = closeDoesFromOtherGroup[0].Group;
+                var otherGroup = closest.Group;
 
                 Group.Join(otherGroup);
 
                 if (otherGroup.Size > DoeGroup.MaximumSize)
                     otherGroup.SplitIntoHalves();
             }
-            else
-                CheckArrival(ref WanderTarget, random, borderAvoidingForce);
+        }
 
+        public void HandleLeader(Random random, Vector2 borderAvoidingForce)
+        {
+            CheckArrival(ref WanderTarget, random, borderAvoidingForce);
+                
             Acceleration += GetArrivalForce(WanderTarget, WanderingSpeed, MaxForce) * 2;
         }
 
-        public void HandleFollower(ref Vector2 separationForce)
+        public void HandleFollower(ref double speed, ref Vector2 separationForce)
         {
             Acceleration += GetArrivalForce(Group.Leader.CenterPosition, WanderingSpeed, MaxForce) * 0.05f;
-                
-            if ((Group.Leader.CenterPosition - CenterPosition).Length() <= SeparationBoostMargin)
+
+            var distanceToLeader = (Group.Leader.CenterPosition - CenterPosition).Length();
+            
+            if (distanceToLeader <= SeparationBoostMargin)
                 separationForce *= 10;
+            else if (distanceToLeader >= CalmingDistance)
+                speed = FleeingSpeed;
         }
 
         public void StartWandering(Random random)

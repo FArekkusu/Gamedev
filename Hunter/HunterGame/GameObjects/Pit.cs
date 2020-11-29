@@ -1,17 +1,18 @@
-﻿using Microsoft.Xna.Framework;
+﻿using HunterGame.GameObjects.Bases;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameObjects
 {
     public class Pit : RectangularObject
     {
-        public readonly Geometry.Rectangle StaticRectangle;
+        public readonly Geometry.Rectangle CachedRectangle;
         
-        public override Geometry.Rectangle Rectangle => StaticRectangle;
+        public override Geometry.Rectangle Rectangle => CachedRectangle;
         
         public Pit(Vector2 position, Vector2 dimensions, GraphicsDevice graphicsDevice, Color color) : base(position, dimensions, graphicsDevice, color)
         {
-            StaticRectangle = base.Rectangle;
+            CachedRectangle = base.Rectangle;
         }
     }
 }

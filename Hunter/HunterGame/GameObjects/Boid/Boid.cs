@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using HunterGame.GameObjects.Bases;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameObjects.Boid
 {
     public abstract class Boid : Creature
     {
@@ -22,11 +23,11 @@ namespace HunterGame
         }
 
         public virtual void Update(GameTime gameTime, WorldState worldState) {}
-        
+
         public IEnumerable<Creature> FindInRadius(IEnumerable<Creature> creatures, double radius)
         {
             foreach (var creature in creatures)
-                if (creature != this && (creature.CenterPosition - CenterPosition).Length() <= radius)
+                if (creature != this && (creature.CenterPosition - CenterPosition).Length() - creature.Texture.Width / 2.0 <= radius)
                     yield return creature;
         }
         
@@ -42,16 +43,16 @@ namespace HunterGame
         
         public Vector2 ChooseNewTarget(Random random, bool keepDirection = true)
         {
-            var angle = MathHelper.ToRadians(random.Next(360));
+            var angle = (float)random.Next(360);
 
             if (Velocity != Vector2.Zero && keepDirection)
             {
                 var oldAngle = MathHelper.ToDegrees((float)Math.Atan2(Velocity.Y, Velocity.X));
                 
                 angle = oldAngle + random.Next(-MaximumAngleChange, MaximumAngleChange + 1);
-                
-                angle = MathHelper.ToRadians(angle);
             }
+
+            angle = MathHelper.ToRadians(angle);
 
             var direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
             

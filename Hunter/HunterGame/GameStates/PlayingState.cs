@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using HunterGame.GameObjects;
+using HunterGame.GameObjects.Animals;
+using HunterGame.GameObjects.Player;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
-namespace HunterGame
+namespace HunterGame.GameStates
 {
     public class PlayingState : GameState
     {
         public readonly WorldState WorldState;
-        
+
         public readonly Vector2 CenterOffset;
         public readonly Camera Camera;
 
@@ -17,7 +21,7 @@ namespace HunterGame
             WorldState = new WorldState(LoadTextures(), Game.GraphicsDevice, Game.Random);
             
             WorldState.AddHunter();
-            WorldState.AddAnimals(hareCount, doeGroupsCount, wolfCount);
+            WorldState.AddInitialAnimals(hareCount, doeGroupsCount, wolfCount);
             WorldState.AddBorders();
             
             CenterOffset = new Vector2(Game.GraphicsDevice.Viewport.Width / 2f, Game.GraphicsDevice.Viewport.Height / 2f);
@@ -35,14 +39,14 @@ namespace HunterGame
                 {typeof(Bullet), Game.Content.Load<Texture2D>("Bullet")},
             };
         }
-
+        
         public override void Update(GameTime gameTime)
         {
             Camera.Update();
             
             WorldState.Update(gameTime, CenterOffset);
             
-            if (!WorldState.Hunter.IsAlive)
+            if (!WorldState.Hunter.IsAlive || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Game.State = new MenuState(Game);
             
             Camera.Follow(WorldState.Hunter.Position, CenterOffset);

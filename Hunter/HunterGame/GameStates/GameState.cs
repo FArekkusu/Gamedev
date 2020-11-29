@@ -1,10 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace HunterGame
+namespace HunterGame.GameStates
 {
     public abstract class GameState
     {
-        public MyGame Game;
+        public readonly MyGame Game;
 
         protected GameState(MyGame game)
         {

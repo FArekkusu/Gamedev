@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Geometry;
+using HunterGame.GameObjects.Animals;
+using HunterGame.GameObjects.Bases;
+using HunterGame.GameObjects.Player;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameObjects
 {
     public class WorldState
     {
@@ -31,52 +34,50 @@ namespace HunterGame
 
         public void AddHunter()
         {
-            var hunterPosition = new Vector2(MapWidth / 2f, MapHeight / 2f);
-            
-            Hunter = new Hunter(Textures[typeof(Hunter)], hunterPosition, Textures[typeof(Bullet)]);
-            
-            Creatures.Add(Hunter);
+            var position = new Vector2(MapWidth / 2f, MapHeight / 2f);
+
+            AddCreature(typeof(Hunter), position, Textures[typeof(Bullet)]);
+
+            Hunter = Creatures[0] as Hunter;
         }
         
-        public void AddAnimals(int hareCount, int doeGroupsCount, int wolfCount)
+        public void AddInitialAnimals(int hareCount, int doeGroupsCount, int wolfCount)
         {
             for (var i = 0; i < hareCount; i++)
             {
                 var position = GenerateSafePosition(typeof(Hare));
-
-                AddAnimal(typeof(Hare), position);
+                AddCreature(typeof(Hare), position);
             }
 
             for (var i = 0; i < doeGroupsCount; i++)
             {
                 var group = new DoeGroup();
-                
                 var groupPosition = GenerateSafePosition(typeof(Doe));
-
                 var membersCount = Random.Next(DoeGroup.MinimumCompleteSize, DoeGroup.MaximumSize + 1);
-                
+
                 for (var j = 0; j < membersCount; j++)
                 {
                     var position = groupPosition;
-
-                    position.X += j % 4;
-                    position.Y += j >> 2;
+                    var dx = j % 4;
+                    var dy = j / 4;
                     
-                    AddAnimal(typeof(Doe), position, group);
+                    position.X += dx;
+                    position.Y += dy;
+                    
+                    AddCreature(typeof(Doe), position, group);
                 }
             }
 
             for (var i = 0; i < wolfCount; i++)
             {
                 var position = GenerateSafePosition(typeof(Wolf));
-
-                AddAnimal(typeof(Wolf), position);
+                AddCreature(typeof(Wolf), position);
             }
         }
 
         public Vector2 GenerateSafePosition(Type t)
         {
-            var margin = Boid.TextureIndependentBorderAvoidanceDistance + Textures[t].Width;
+            var margin = Boid.Boid.TextureIndependentBorderAvoidanceDistance + Textures[t].Width;
             
             var x = Random.Next(margin, MapWidth - margin);
             var y = Random.Next(margin, MapHeight - margin);
@@ -84,14 +85,9 @@ namespace HunterGame
             return new Vector2(x, y);
         }
 
-        public void AddAnimal(Type t, params object[] args)
+        public void AddCreature(Type t, params object[] args)
         {
-            var fullArgs = new object[args.Length + 1];
-            fullArgs[0] = Textures[t];
-
-            for (var i = 0; i < args.Length; i++)
-                fullArgs[i + 1] = args[i];
-            
+            var fullArgs = new [] {Textures[t]}.Concat(args).ToArray();
             var creature = Activator.CreateInstance(t, fullArgs) as Creature;
             
             Creatures.Add(creature);
@@ -134,7 +130,7 @@ namespace HunterGame
         public void UpdateGameObjects(GameTime gameTime, Vector2 centerOffset)
         {
             foreach (var creature in Creatures)
-                if (creature is Boid boid)
+                if (creature is Boid.Boid boid)
                     boid.Update(gameTime, this);
 
             foreach (var bullet in Bullets)

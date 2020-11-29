@@ -1,4 +1,4 @@
-﻿namespace HunterGame
+﻿namespace HunterGame.GameObjects.Boid
 {
     public enum BoidState
     {

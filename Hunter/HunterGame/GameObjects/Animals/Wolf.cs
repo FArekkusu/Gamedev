@@ -1,20 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Geometry;
+using HunterGame.GameObjects.Bases;
+using HunterGame.GameObjects.Boid;
+using HunterGame.GameObjects.Boid.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameObjects.Animals
 {
-    public class Wolf : Boid
+    public class Wolf : Boid.Boid, IWandering, IFollowing
     {
         public const double HuntingSpeed = 300;
         public const double WanderingSpeed = 75;
         public const double MaxForce = 5;
-        public const double TextureIndependentAgroDistance = 60;
-        public const double TextureIndependentCalmingDistance = 100;
-        public const double LifeTime = 30;
-        public const double StarvationTime = 25;
+        public const double TextureIndependentAgroDistance = 100;
+        public const double TextureIndependentCalmingDistance = 150;
+        public const double LifeTime = 40;
+        public const double StarvationTime = 30;
 
         public readonly double AgroDistance;
         public readonly double CalmingDistance;
@@ -38,30 +42,29 @@ namespace HunterGame
             
             LifeTimer -= elapsedTime;
 
-            if (LifeTimer <= 0)
-            {
-                IsAlive = false;
-                return;
-            }
-            
             if (State == BoidState.Wandering)
                 Wander(elapsedTime, worldState);
             else if (State == BoidState.Following)
                 Follow(elapsedTime, worldState);
-
-            foreach (var creature in worldState.Creatures)
-                if (creature.IsAlive && !(creature is Wolf) && CollisionTester.TestCircleCircle(Circle, creature.Circle))
-                {
-                    creature.IsAlive = false;
-                    LifeTimer = LifeTime;
-                    State = BoidState.Wandering;
-                }
+            else
+                throw new IncorrectBoidStateException($"Wolf cannot be in state {State}");
+            
+            if (LifeTimer <= StarvationTime)
+                foreach (var creature in worldState.Creatures)
+                    if (creature.IsAlive && !(creature is Wolf) && CollisionTester.TestCircleCircle(Circle, creature.Circle))
+                    {
+                        creature.IsAlive = false;
+                        LifeTimer = LifeTime;
+                        State = BoidState.Wandering;
+                    }
+            
+            if (LifeTimer <= 0)
+                IsAlive = false;
         }
 
         public void Wander(double elapsedTime, WorldState worldState)
         {
-            var close = FindInRadius(worldState.Creatures, AgroDistance);
-            var preyFound = close.Any(creature => !(creature is Wolf));
+            var preyFound = FindPrey(worldState.Creatures, AgroDistance).Any();
             
             if (preyFound && LifeTimer <= StarvationTime)
             {
@@ -88,8 +91,7 @@ namespace HunterGame
 
         public void Follow(double elapsedTime, WorldState worldState)
         {
-            var close = FindInRadius(worldState.Creatures, CalmingDistance);
-            var prey = close.Where(creature => !(creature is Wolf)).ToList();
+            var prey = FindPrey(worldState.Creatures, CalmingDistance).ToList();
             
             if (prey.Count == 0)
             {
@@ -108,6 +110,11 @@ namespace HunterGame
         public void StartFollowing()
         {
             State = BoidState.Following;
+        }
+        
+        public IEnumerable<Creature> FindPrey(IEnumerable<Creature> creatures, double distance)
+        {
+            return FindInRadius(creatures, distance).Where(creature => !(creature is Wolf));
         }
     }
 }

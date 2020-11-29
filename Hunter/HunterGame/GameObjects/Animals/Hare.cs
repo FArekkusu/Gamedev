@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Linq;
+using HunterGame.GameObjects.Boid;
+using HunterGame.GameObjects.Boid.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameObjects.Animals
 {
-    public class Hare : Boid
+    public class Hare : Boid.Boid, IWandering, IFleeing
     {
-        
         public const double FleeingSpeed = 375;
         public const double WanderingSpeed = 37.5;
         public const double MaxForce = 5;
-        public const double TextureIndependentFearDistance = 50;
-        public const double TextureIndependentCalmingDistance = 100;
+        public const double TextureIndependentFearDistance = 75;
+        public const double TextureIndependentCalmingDistance = 175;
         
         public readonly double FearDistance;
         public readonly double CalmingDistance;
@@ -36,6 +37,8 @@ namespace HunterGame
                 Wander(elapsedTime, worldState);
             else if (State == BoidState.Fleeing)
                 Flee(elapsedTime, worldState);
+            else
+                throw new IncorrectBoidStateException($"Hare cannot be in state {State}");
         }
 
         public void Wander(double elapsedTime, WorldState worldState)

@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
+using HunterGame.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace HunterGame
+namespace HunterGame.GameStates
 {
     public class MenuState : GameState
     {
-        public readonly List<InputField> InputFields = new List<InputField>();
+        public readonly Dictionary<string, InputField> InputFields = new Dictionary<string, InputField>();
         public readonly List<TextField> TextFields = new List<TextField>();
 
         public readonly Button StartButton;
@@ -16,14 +17,14 @@ namespace HunterGame
             var font = Game.Content.Load<SpriteFont>("MenuFont");
 
             AddTextFields(10, 10, 50, new [] {"Hares:", "Doe groups:", "Wolves:"}, font);
-            AddInputFields(200, 10, 50, 3, font);
-            AddTextFields(10, 320, 0, new [] {"Controls:\n  W/A/S/D - movement\n  Q/E - zoom in/out\n  LMB - shoot"}, font);
+            AddInputFields(200, 10, 50, new [] {"hares", "doe groups", "wolves"}, font);
+            AddTextFields(10, 320, 0, new [] {"Controls:\n  LMB - shoot\n  W/A/S/D - movement\n  Q/E - zoom in/out\n  Esc - return to menu"}, font);
 
             StartButton = new Button(new Vector2(10, 200), font, "Start game", (o, args) =>
             {
-                var hareCount = int.Parse(InputFields[0].Content);
-                var doeGroupsCount = int.Parse(InputFields[1].Content);
-                var wolfCount = int.Parse(InputFields[2].Content);
+                var hareCount = int.Parse(InputFields["hares"].Content);
+                var doeGroupsCount = int.Parse(InputFields["doe groups"].Content);
+                var wolfCount = int.Parse(InputFields["wolves"].Content);
                 
                 Game.State = new PlayingState(Game, hareCount, doeGroupsCount, wolfCount);
             });
@@ -41,13 +42,13 @@ namespace HunterGame
             }
         }
 
-        public void AddInputFields(int x, int y, int dy, int count, SpriteFont font)
+        public void AddInputFields(int x, int y, int dy, IEnumerable<string> names, SpriteFont font)
         {
-            for (var i = 0; i < count; i++)
+            foreach (var name in names)
             {
                 var inputField = new InputField(new Vector2(x, y), font, Game.GraphicsDevice, 1, "0", "1");
                 
-                InputFields.Add(inputField);
+                InputFields[name] = inputField;
                 
                 y += dy;
             }
@@ -56,7 +57,7 @@ namespace HunterGame
 
         public override void Update(GameTime gameTime)
         {
-            foreach (var inputField in InputFields)
+            foreach (var inputField in InputFields.Values)
                 inputField.Update();
 
             StartButton.Update();
@@ -71,7 +72,7 @@ namespace HunterGame
             foreach (var textField in TextFields)
                 textField.Draw(Game.SpriteBatch);
             
-            foreach (var inputField in InputFields)
+            foreach (var inputField in InputFields.Values)
                 inputField.Draw(Game.SpriteBatch);
 
             StartButton.Draw(Game.SpriteBatch);

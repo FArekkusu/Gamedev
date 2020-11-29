@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace HunterGame
+namespace HunterGame.GameObjects.Animals
 {
     public class DoeGroup
     {
@@ -9,9 +9,9 @@ namespace HunterGame
         public const int MaximumSize = 10;
         
         public List<Doe> Members = new List<Doe>();
-
+        
         public Doe Leader => Members[0];
-
+        
         public int Size => Members.Count;
         public bool IsComplete => Size >= MinimumCompleteSize && Size <= MaximumSize;
 
@@ -34,13 +34,13 @@ namespace HunterGame
         {
             var newGroup = new DoeGroup();
             
-            var left = Members.Take(Size / 2);
-            var moved = Members.Skip(Size / 2);
+            var staying = Members.Take(Size / 2);
+            var leaving = Members.Skip(Size / 2);
             
-            foreach (var member in moved)
+            foreach (var member in leaving)
                 newGroup.Add(member);
 
-            Members = left.ToList();
+            Members = staying.ToList();
             
             newGroup.Leader.WanderTarget = newGroup.Leader.CenterPosition;
         }

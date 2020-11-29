@@ -8,11 +8,11 @@ namespace HunterGame
     {
         public const int MinZoom = 25;
         public const int MaxZoom = 100;
-        public const int DefaultZoom = 75;
+        public const int DefaultZoom = 70;
         public const int ZoomStep = 1;
         
         public int ZoomLevel = DefaultZoom;
-        public Matrix Zoom = Matrix.CreateScale(DefaultZoom / 100f, DefaultZoom / 100f, 0);
+        public Matrix Zoom = CreateZoomMatrix(DefaultZoom);
         public Matrix Transform;
 
         public void Update()
@@ -28,7 +28,12 @@ namespace HunterGame
         public void UpdateZoom(int change)
         {
             ZoomLevel = Math.Max(MinZoom, Math.Min(MaxZoom, ZoomLevel + change));
-            Zoom = Matrix.CreateScale(ZoomLevel / 100f, ZoomLevel / 100f, 0);
+            Zoom = CreateZoomMatrix(ZoomLevel);
+        }
+
+        public static Matrix CreateZoomMatrix(int zoomLevel)
+        {
+            return Matrix.CreateScale(zoomLevel / 100f, zoomLevel / 100f, 0);
         }
 
         public void Follow(Vector2 target, Vector2 centerOffset)

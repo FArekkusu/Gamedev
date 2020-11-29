@@ -1,4 +1,5 @@
 ﻿using System;
+using HunterGame.GameStates;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -10,7 +11,7 @@ namespace HunterGame
         public SpriteBatch SpriteBatch;
 
         public GameState State;
-        public Random Random = new Random();
+        public readonly Random Random = new Random();
         
         public MyGame()
         {
